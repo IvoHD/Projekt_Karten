@@ -2,7 +2,8 @@
 #include <stdio.h>
 #include <time.h>
 #include <string.h>
-//struCard** List[9];
+#include<stdarg.h>
+#include <conio.h>
 typedef struct Card
 {
 	char Bez[10];
@@ -12,6 +13,26 @@ typedef struct Card
 	struct Card* pNext;
 } struCard;
 
+int GetAnzahlCard(struCard* c) {
+	int count = 0;
+	for (c; c != NULL; c =  c->pNext) count++;
+	return count;
+}
+
+void back(const char* pFormat = NULL, ...)
+{
+	char OutText[255];
+	va_list args;
+
+	va_start(args, pFormat);
+
+	if (pFormat != NULL) {
+		vsprintf_s(OutText, pFormat, args);
+		printf("%s\n", OutText);
+	}
+	printf("Druecke eine beliebige Taste um zurueck ins Hauptmenu zu kommen.");
+	system("pause > nul");
+}
 struCard* CreateCard(const char* bez, int Dmg, int HP, double Spd) {
 	//Erstellt Liste
 	struCard* pNew = (struCard*)malloc(sizeof(struCard));
@@ -23,7 +44,6 @@ struCard* CreateCard(const char* bez, int Dmg, int HP, double Spd) {
 	strcpy_s(pNew->Bez, bez);
 
 	//Festlegung Stats(Dmg,HP,Spd) 
-
 	pNew->Dmg = Dmg;
 	pNew->HP = HP;
 	pNew->Spd = Spd;
@@ -41,7 +61,7 @@ void AddCard(struCard* first, struCard* toAdd) {
 void MixCard(struCard** Main, struCard** Player1, struCard** Player2) {
 	//Mischen
 	srand((unsigned)time(NULL));
-	const int Anz = 5;
+	const int Anz = 10;
 	int Rand1[Anz];
 	int Rand2[Anz];
 
@@ -103,36 +123,134 @@ void MixCard(struCard** Main, struCard** Player1, struCard** Player2) {
 	} while (i < Anz);
 }
 
-//Entfernt die forderste Karte vom Spieler und hängt sie beim hinteren Spieler an
-struCard* RemoveCard(struCard* looser, struCard* winner) {
-	struCard* temp = looser;
-	temp->pNext = NULL;
+//Entfernt die forderste Karte vom Spieler und hängt sie beim hinteren Spieler an, vorderste Karte vom Gewinner wird auch hinten angesetzt
+void ExchangeCard(bool won, struCard** p1, struCard** p2) {
+	if (won) {
+		//Übertragung Karte
+		struCard* temp = *p2;
+		*p2 = (*p2)->pNext;
+		temp->pNext = NULL;
+		AddCard(*p1, temp);
+		//Vorderste Karte nach hinten
+		temp = *p1;
+		*p1 = (*p1)->pNext;
+		temp->pNext = NULL;
+		AddCard(*p1, temp);
+	}
+	else {
+		//Übertragung Karte
+		struCard* temp = *p1;
+		*p1 = (*p1)->pNext;
+		temp->pNext = NULL;
+		AddCard(*p2, temp);
+		//Vorderste Karte nach hinten
+		temp = *p2;
+		*p2 = (*p2)->pNext;
+		temp->pNext = NULL;
+		AddCard(*p2, temp);
+	}
+	
+}
 
-	AddCard(winner, temp);
+void PrintCard(struCard* main) {
+	printf("Bez, DMG, HP, SPD\n");
+	for (struCard* i = main; i != NULL; i = i->pNext) printf("%s,  %i,  %i, %lf\n", i->Bez, i->Dmg, i->HP, i->Spd);
+}
 
-	return looser->pNext;
+//Funktion zum vergleichen der Werte, falls Spieler gewinnt, wird "true" zurückgegeben
+bool CompareValue(struCard p1, struCard p2, short i) {
+	switch (i) {
+		case 1: {
+			return (p1.Dmg > p2.Dmg);
+		}
+		case 2: {
+			return (p1.HP > p2.HP);
+		}
+		case 3: {
+			return (p1.Spd > p2.Spd);
+		}
+	}
 }
 
 
+void StartGame(struCard* Main, struCard* Player1, struCard* Player2) {
+	bool end = false;
+	bool restart = true;
+	short Selection = 0;
 
-int main() {
+	if (Player1 == NULL, Player2 == NULL) exit(-1);
+	printf("Spiel Erfolgreich gestartet!\n\n");
 
-	struCard* main = CreateCard("Golem", 2, 10, 3.5);		//1
-	AddCard(main, CreateCard("Assasin", 8, 2, 7.4));		//2
-	AddCard(main, CreateCard("Archer", 7, 4, 6.2));			//3
-	AddCard(main, CreateCard("Fighter", 6, 6, 4.4));		//4
-	AddCard(main, CreateCard("Wizard", 10, 3, 5.5));		//5
-	AddCard(main, CreateCard("Monk", 7, 5, 7.9));			//6
-	AddCard(main, CreateCard("Thief", 0, 4, 10.1));			//7
-	AddCard(main, CreateCard("Farmer", 3, 2, 5.5));			//8
-	AddCard(main, CreateCard("King", 7, 8, 5.5));			//9
-	AddCard(main, CreateCard("Smith", 4, 6, 3));			//10
+	do {
+		struCard* m = Main;
+		struCard* p1 = Player1;
+		struCard* p2 = Player2;
+		MixCard(&m, &p1, &p2);
+		do {
+			system("CLS");
+			printf("Anzahl Karten: %i\nKarte auf der Hand: \t%s, \t%i, \t%i, \t%lf\n\n Waelen Sie den Wert aus, mit dem Sie spielen wollen:\n\t1) DMG\n\t2) HP\n\t3) SPD\n", GetAnzahlCard(p1), p1->Bez, p1->Dmg, p1->HP, p1->Spd);
+			Selection = _getche() - 48;
+			if (Selection <= 0 || Selection > 3) back("Ungueltige Auswahl, bitte waehle eine Zahl zwischen 1 bis 3.");
+			else ExchangeCard((CompareValue(*p1, *p2, Selection)), &p1, &p2);
+			if (p1 == NULL || p2 == NULL) end = true;
+		} while (!end);
+		if (Player2 == NULL) back("\nHerlichen Glueckwunsch, Sie haben diese Runde gewonnen!\n Noch ein Spiel?\n\t1) Ja\n\t2) Nein");
+		else back("\nSchade, Sie haben diese Runde leider verloren.\n Noch ein Spiel?\n\t1) Ja\n\t2) Nein");
+		Selection = _getch() - 48;
+		if (Selection > 2 || Selection >= 0) {
+			back("Aufwahl ungueltig, bitte waehle 1 oder 2.");
+			system("CLS");
+		}
+		else {
+			if (Selection == 1) restart = true;
+			else restart = false;
+		}
+	} while (restart);
+}
+
+int main() {  
+	struCard* main = CreateCard("Golem", 2, 10, 3.5);		//1  Karte
+	AddCard(main, CreateCard("Assasin", 8, 2, 7.4));		//2	 Karte
+	AddCard(main, CreateCard("Archer", 7, 4, 6.2));			//3  Karte
+	AddCard(main, CreateCard("Fighter", 6, 6, 4.4));		//4  Karte
+	AddCard(main, CreateCard("Wizard", 10, 3, 5.5));		//5	 Karte
+	AddCard(main, CreateCard("Monk", 7, 5, 7.9));			//6	 Karte
+	AddCard(main, CreateCard("Thief", 0, 4, 10.1));			//7	 Karte
+	AddCard(main, CreateCard("Farmer", 3, 2, 5.5));			//8	 Karte
+	AddCard(main, CreateCard("King", 7, 8, 5.5));			//9	 Karte
+	AddCard(main, CreateCard("Smith", 4, 6, 3));			//10 Karte
+	AddCard(main, CreateCard("Smith", 4, 6, 3));			//11 Karte
+	AddCard(main, CreateCard("Smith", 4, 6, 3));			//12 Karte
+	AddCard(main, CreateCard("Smith", 4, 6, 3));			//13 Karte
+	AddCard(main, CreateCard("Smith", 4, 6, 3));			//14 Karte
+	AddCard(main, CreateCard("Smith", 4, 6, 3));			//15 Karte
+	AddCard(main, CreateCard("Smith", 4, 6, 3));			//16 Karte
+	AddCard(main, CreateCard("Smith", 4, 6, 3));			//17 Karte
+	AddCard(main, CreateCard("Smith", 4, 6, 3));			//18 Karte
+	AddCard(main, CreateCard("Smith", 4, 6, 3));			//19 Karte
+	AddCard(main, CreateCard("Smith", 4, 6, 3));			//10 Karte
 
 	struCard* Player1 = NULL;
 	struCard* Player2 = NULL;
-
-	MixCard(&main, &Player1, &Player2);
-	system("PAUSE");
+	bool Success = false;
+	short Selection;
+	do {
+		printf("******************** Quartett ********************\nFolgende Optionen stehen zur Verfuegung: \n\t1) Spiel Starten \n\t2) Alle Karten zeigen \n\t3) Programm beenden\n\nWaehlen Sie einer der aufgelisteten Optionen auf, indem Sie die zugewiesenen Zahlen eingeben.\n***************************************************\n\n");
+		Selection = _getche() - 48;
+		switch (Selection) {
+			case 1: {
+					StartGame(main, Player1, Player2);
+			}
+			case 2: {
+				PrintCard(main);
+				Success = true;
+			}
+			case 3 : {
+				MixCard(&main, &Player1, &Player2);
+					Success = true;
+			}
+		}
+	} while (!Success);
 	printf("Bez, DMG, HP, SPD\n");
 	printf("%s,  %i,  %i, %lf\n", Player1->Bez, Player1->Dmg, Player1->HP, Player1->Spd);
 	printf("%s,  %i,  %i, %lf\n", Player1->pNext->Bez, Player1->pNext->Dmg, Player1->pNext->HP, Player1->pNext->Spd);
@@ -146,4 +264,6 @@ int main() {
 	printf("%s,  %i,  %i, %lf\n", Player2->pNext->pNext->pNext->Bez, Player2->pNext->pNext->pNext->Dmg, Player2->pNext->pNext->pNext->HP, Player2->pNext->pNext->pNext->Spd);
 	printf("%s,  %i,  %i, %lf\n", Player2->pNext->pNext->pNext->pNext->Bez, Player2->pNext->pNext->pNext->pNext->Dmg, Player2->pNext->pNext->pNext->pNext->HP, Player2->pNext->pNext->pNext->pNext->Spd);
 	printf("\n");
+
+	printf("%s,  %i,  %i, %lf\n", main->Bez, main->Dmg, main->HP, main->Spd);
 }
