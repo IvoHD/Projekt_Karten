@@ -177,14 +177,20 @@ void StartGame(struCard* Main, struCard* Player1, struCard* Player2) {
 	bool end = false;
 	bool restart = true;
 	short Selection = 0;
-
+	struCard* m = Main;
+	struCard* p1 = Player1;
+	struCard* p2 = Player2;
+	MixCard(&m, &p1, &p2);
+	Player1 = p1;
+	Player2 = p2;
 	if (Player1 == NULL, Player2 == NULL) exit(-1);
 	printf("Spiel Erfolgreich gestartet!\n\n");
 
 	do {
-		struCard* m = Main;
-		struCard* p1 = Player1;
-		struCard* p2 = Player2;
+		end = false;
+		m = Main;
+		p1 = Player1;
+		p2 = Player2;
 		MixCard(&m, &p1, &p2);
 		do {
 			system("CLS");
@@ -197,7 +203,7 @@ void StartGame(struCard* Main, struCard* Player1, struCard* Player2) {
 		if (Player2 == NULL) back("\nHerlichen Glueckwunsch, Sie haben diese Runde gewonnen!\n Noch ein Spiel?\n\t1) Ja\n\t2) Nein");
 		else back("\nSchade, Sie haben diese Runde leider verloren.\n Noch ein Spiel?\n\t1) Ja\n\t2) Nein");
 		Selection = _getch() - 48;
-		if (Selection > 2 || Selection >= 0) {
+		if (Selection > 2 || Selection <= 0) {
 			back("Aufwahl ungueltig, bitte waehle 1 oder 2.");
 			system("CLS");
 		}
@@ -235,35 +241,39 @@ int main() {
 	bool Success = false;
 	short Selection;
 	do {
+		system("CLS");
 		printf("******************** Quartett ********************\nFolgende Optionen stehen zur Verfuegung: \n\t1) Spiel Starten \n\t2) Alle Karten zeigen \n\t3) Programm beenden\n\nWaehlen Sie einer der aufgelisteten Optionen auf, indem Sie die zugewiesenen Zahlen eingeben.\n***************************************************\n\n");
 		Selection = _getche() - 48;
 		switch (Selection) {
 			case 1: {
 					StartGame(main, Player1, Player2);
+					break;
 			}
 			case 2: {
 				PrintCard(main);
 				Success = true;
+				break;
 			}
 			case 3 : {
 				MixCard(&main, &Player1, &Player2);
 					Success = true;
+					break;
 			}
 		}
 	} while (!Success);
-	printf("Bez, DMG, HP, SPD\n");
-	printf("%s,  %i,  %i, %lf\n", Player1->Bez, Player1->Dmg, Player1->HP, Player1->Spd);
-	printf("%s,  %i,  %i, %lf\n", Player1->pNext->Bez, Player1->pNext->Dmg, Player1->pNext->HP, Player1->pNext->Spd);
-	printf("%s,  %i,  %i, %lf\n", Player1->pNext->pNext->Bez, Player1->pNext->pNext->Dmg, Player1->pNext->pNext->HP, Player1->pNext->pNext->Spd);
-	printf("%s,  %i,  %i, %lf\n", Player1->pNext->pNext->pNext->Bez, Player1->pNext->pNext->pNext->Dmg, Player1->pNext->pNext->pNext->HP, Player1->pNext->pNext->pNext->Spd);
-	printf("%s,  %i,  %i, %lf\n", Player1->pNext->pNext->pNext->pNext->Bez, Player1->pNext->pNext->pNext->pNext->Dmg, Player1->pNext->pNext->pNext->pNext->HP, Player1->pNext->pNext->pNext->pNext->Spd);
-	printf("Spieler2\n\n");
-	printf("%s,  %i,  %i, %lf\n", Player2->Bez, Player2->Dmg, Player2->HP, Player2->Spd);
-	printf("%s,  %i,  %i, %lf\n", Player2->pNext->Bez, Player2->pNext->Dmg, Player2->pNext->HP, Player2->pNext->Spd);
-	printf("%s,  %i,  %i, %lf\n", Player2->pNext->pNext->Bez, Player2->pNext->pNext->Dmg, Player2->pNext->pNext->HP, Player2->pNext->pNext->Spd);
-	printf("%s,  %i,  %i, %lf\n", Player2->pNext->pNext->pNext->Bez, Player2->pNext->pNext->pNext->Dmg, Player2->pNext->pNext->pNext->HP, Player2->pNext->pNext->pNext->Spd);
-	printf("%s,  %i,  %i, %lf\n", Player2->pNext->pNext->pNext->pNext->Bez, Player2->pNext->pNext->pNext->pNext->Dmg, Player2->pNext->pNext->pNext->pNext->HP, Player2->pNext->pNext->pNext->pNext->Spd);
-	printf("\n");
+	//printf("Bez, DMG, HP, SPD\n");
+	//printf("%s,  %i,  %i, %lf\n", Player1->Bez, Player1->Dmg, Player1->HP, Player1->Spd);
+	//printf("%s,  %i,  %i, %lf\n", Player1->pNext->Bez, Player1->pNext->Dmg, Player1->pNext->HP, Player1->pNext->Spd);
+	//printf("%s,  %i,  %i, %lf\n", Player1->pNext->pNext->Bez, Player1->pNext->pNext->Dmg, Player1->pNext->pNext->HP, Player1->pNext->pNext->Spd);
+	//printf("%s,  %i,  %i, %lf\n", Player1->pNext->pNext->pNext->Bez, Player1->pNext->pNext->pNext->Dmg, Player1->pNext->pNext->pNext->HP, Player1->pNext->pNext->pNext->Spd);
+	//printf("%s,  %i,  %i, %lf\n", Player1->pNext->pNext->pNext->pNext->Bez, Player1->pNext->pNext->pNext->pNext->Dmg, Player1->pNext->pNext->pNext->pNext->HP, Player1->pNext->pNext->pNext->pNext->Spd);
+	//printf("Spieler2\n\n");
+	//printf("%s,  %i,  %i, %lf\n", Player2->Bez, Player2->Dmg, Player2->HP, Player2->Spd);
+	//printf("%s,  %i,  %i, %lf\n", Player2->pNext->Bez, Player2->pNext->Dmg, Player2->pNext->HP, Player2->pNext->Spd);
+	//printf("%s,  %i,  %i, %lf\n", Player2->pNext->pNext->Bez, Player2->pNext->pNext->Dmg, Player2->pNext->pNext->HP, Player2->pNext->pNext->Spd);
+	//printf("%s,  %i,  %i, %lf\n", Player2->pNext->pNext->pNext->Bez, Player2->pNext->pNext->pNext->Dmg, Player2->pNext->pNext->pNext->HP, Player2->pNext->pNext->pNext->Spd);
+	//printf("%s,  %i,  %i, %lf\n", Player2->pNext->pNext->pNext->pNext->Bez, Player2->pNext->pNext->pNext->pNext->Dmg, Player2->pNext->pNext->pNext->pNext->HP, Player2->pNext->pNext->pNext->pNext->Spd);
+	//printf("\n");
 
 	printf("%s,  %i,  %i, %lf\n", main->Bez, main->Dmg, main->HP, main->Spd);
 }
